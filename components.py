@@ -57,9 +57,18 @@ def display_product(result):
     """
     logger = logging.getLogger(ct.LOGGER_NAME)
 
-    # LLMレスポンスのテキストを辞書に変換
-    product_lines = result[0].page_content.split("\n")
-    product = {item.split(": ")[0]: item.split(": ")[1] for item in product_lines}
+    # デバッグ情報をログに出力
+    logger.info(f"result type: {type(result)}")
+    logger.info(f"result content: {result}")
+    
+    try:
+        # LLMレスポンスのテキストを辞書に変換
+        product_lines = result[0].page_content.split("\n")
+        product = {item.split(": ")[0]: item.split(": ")[1] for item in product_lines}
+    except Exception as e:
+        logger.error(f"Error parsing result: {e}")
+        st.error(f"商品データの解析に失敗しました: {str(e)}")
+        return
 
     st.markdown("以下の商品をご提案いたします。")
 
