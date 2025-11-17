@@ -95,8 +95,25 @@ def initialize_retriever():
     if "retriever" in st.session_state:
         return
     
-    loader = CSVLoader(ct.RAG_SOURCE_PATH, encoding="utf-8")
-    docs = loader.load()
+    # OpenAI API キーの存在確認
+    openai_api_key = os.getenv("OPENAI_API_KEY")
+    if not openai_api_key:
+        error_msg = "OPENAI_API_KEY が設定されていません"
+        logger.error(error_msg)
+        st.error(error_msg + "。環境変数OPENAI_API_KEYを設定してください。")
+        st.stop()
+    else:
+        logger.info("OPENAI_API_KEY が設定されています")
+    
+    try:
+        loader = CSVLoader(ct.RAG_SOURCE_PATH, encoding="utf-8")
+        docs = loader.load()
+        logger.info(f"CSVファイルを正常に読み込みました。ドキュメント数: {len(docs)}")
+    except Exception as e:
+        error_msg = f"CSVファイルの読み込みに失敗: {e}"
+        logger.error(error_msg)
+        st.error(error_msg)
+        st.stop()
 
     # OSがWindowsの場合、Unicode正規化と、cp932（Windows用の文字コード）で表現できない文字を除去
     for doc in docs:
@@ -108,22 +125,60 @@ def initialize_retriever():
     for doc in docs:
         docs_all.append(doc.page_content)
 
-    embeddings = OpenAIEmbeddings()
-    db = Chroma.from_documents(docs, embedding=embeddings)
+    try:
+        embeddings = OpenAIEmbeddings()
+        logger.info("OpenAIEmbeddings が正常に初期化されました")
+    except Exception as e:
+        error_msg = f"OpenAIEmbeddings の初期化に失敗: {e}"
+        logger.error(error_msg)
+        st.error(error_msg + "。APIキーが正しいか確認してください。")
+        st.stop()
+    
+    try:
+        db = Chroma.from_documents(docs, embedding=embeddings)
+        logger.info("Chroma ベクトルデータベースが正常に作成されました")
+    except Exception as e:
+        error_msg = f"Chroma データベースの作成に失敗: {e}"
+        logger.error(error_msg)
+        st.error(error_msg)
+        st.stop()
 
-    retriever = db.as_retriever(search_kwargs={"k": ct.TOP_K})
+    try:
+        retriever = db.as_retriever(search_kwargs={"k": ct.TOP_K})
+        logger.info("リトリーバーが正常に作成されました")
+    except Exception as e:
+        error_msg = f"リトリーバーの作成に失敗: {e}"
+        logger.error(error_msg)
+        st.error(error_msg)
+        st.stop()
 
-    bm25_retriever = BM25Retriever.from_texts(
-        docs_all,
-        preprocess_func=utils.preprocess_func,
-        k=ct.TOP_K
-    )
-    ensemble_retriever = EnsembleRetriever(
-        retrievers=[bm25_retriever, retriever],
-        weights=ct.RETRIEVER_WEIGHTS
-    )
+    try:
+        bm25_retriever = BM25Retriever.from_texts(
+            docs_all,
+            preprocess_func=utils.preprocess_func,
+            k=ct.TOP_K
+        )
+        logger.info("BM25リトリーバーが正常に作成されました")
+    except Exception as e:
+        error_msg = f"BM25リトリーバーの作成に失敗: {e}"
+        logger.error(error_msg)
+        st.error(error_msg)
+        st.stop()
+    
+    try:
+        ensemble_retriever = EnsembleRetriever(
+            retrievers=[bm25_retriever, retriever],
+            weights=ct.RETRIEVER_WEIGHTS
+        )
+        logger.info("アンサンブルリトリーバーが正常に作成されました")
+    except Exception as e:
+        error_msg = f"アンサンブルリトリーバーの作成に失敗: {e}"
+        logger.error(error_msg)
+        st.error(error_msg)
+        st.stop()
 
     st.session_state.retriever = ensemble_retriever
+    logger.info("すべてのリトリーバーの初期化が完了しました")
 
 
 def adjust_string(s):

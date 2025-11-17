@@ -57,17 +57,52 @@ def display_product(result):
     """
     logger = logging.getLogger(ct.LOGGER_NAME)
 
-    # デバッグ情報をログに出力
+    # 詳細なデバッグ情報をログに出力
     logger.info(f"result type: {type(result)}")
+    logger.info(f"result length: {len(result) if hasattr(result, '__len__') else 'N/A'}")
     logger.info(f"result content: {result}")
     
+    # Streamlitの画面にもデバッグ情報を表示（一時的）
+    st.write(f"**デバッグ情報:** result type = {type(result)}")
+    if hasattr(result, '__len__'):
+        st.write(f"**デバッグ情報:** result length = {len(result)}")
+    st.write(f"**デバッグ情報:** result content = {result}")
+    
     try:
+        # resultが期待される形式かチェック
+        if not result or len(result) == 0:
+            error_msg = "検索結果が空です"
+            logger.error(error_msg)
+            st.error(error_msg)
+            return
+            
+        # 最初の要素にpage_contentがあるかチェック
+        if not hasattr(result[0], 'page_content'):
+            error_msg = f"検索結果にpage_contentが見つかりません。result[0] type: {type(result[0])}, content: {result[0]}"
+            logger.error(error_msg)
+            st.error(error_msg)
+            return
+        
         # LLMレスポンスのテキストを辞書に変換
-        product_lines = result[0].page_content.split("\n")
-        product = {item.split(": ")[0]: item.split(": ")[1] for item in product_lines}
+        page_content = result[0].page_content
+        logger.info(f"page_content: {page_content}")
+        product_lines = page_content.split("\n")
+        logger.info(f"product_lines: {product_lines}")
+        
+        product = {}
+        for item in product_lines:
+            if ": " in item:
+                key, value = item.split(": ", 1)
+                product[key] = value
+            else:
+                logger.warning(f"Skipping malformed line: {item}")
+                
+        logger.info(f"parsed product: {product}")
+        
     except Exception as e:
-        logger.error(f"Error parsing result: {e}")
-        st.error(f"商品データの解析に失敗しました: {str(e)}")
+        error_msg = f"商品データの解析でエラーが発生: {str(e)}, result: {result}"
+        logger.error(error_msg)
+        st.error(error_msg)
         return
 
     st.markdown("以下の商品をご提案いたします。")
