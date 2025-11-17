@@ -33,7 +33,7 @@ STOCK_OUT_STATUS = "なし"
 STOCK_LOW_MESSAGE = "ご好評につき、在庫数が残りわずかです。購入をご希望の場合、お早めのご注文をおすすめいたします。"
 STOCK_OUT_MESSAGE = "申し訳ございませんが、本商品は在庫切れとなっております。入荷までもうしばらくお待ちください。"
 STOCK_WARNING_ICON = ":warning:"
-STOCK_ERROR_ICON = ":exclamation:"
+STOCK_ERROR_ICON = ":material/info:"
 
 # ==========================================
 # Retriever設定系
