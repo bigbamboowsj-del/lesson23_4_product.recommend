@@ -62,11 +62,8 @@ def display_product(result):
     logger.info(f"result length: {len(result) if hasattr(result, '__len__') else 'N/A'}")
     logger.info(f"result content: {result}")
     
-    # Streamlitの画面にもデバッグ情報を表示（一時的）
-    st.write(f"**デバッグ情報:** result type = {type(result)}")
-    if hasattr(result, '__len__'):
-        st.write(f"**デバッグ情報:** result length = {len(result)}")
-    st.write(f"**デバッグ情報:** result content = {result}")
+    # デバッグ情報を簡潔に表示（必要に応じてコメントアウト可能）
+    # st.write(f"**デバッグ情報:** {len(result)}件の商品が見つかりました")
     
     try:
         # resultが期待される形式かチェック
@@ -85,7 +82,11 @@ def display_product(result):
         
         # LLMレスポンスのテキストを辞書に変換
         page_content = result[0].page_content
-        logger.info(f"page_content: {page_content}")
+        # BOM（\ufeff）を除去
+        if page_content.startswith('\ufeff'):
+            page_content = page_content[1:]
+        
+        logger.info(f"page_content (after BOM removal): {page_content}")
         product_lines = page_content.split("\n")
         logger.info(f"product_lines: {product_lines}")
         
@@ -93,6 +94,8 @@ def display_product(result):
         for item in product_lines:
             if ": " in item:
                 key, value = item.split(": ", 1)
+                # キーからもBOMを除去（念のため）
+                key = key.strip().lstrip('\ufeff')
                 product[key] = value
             else:
                 logger.warning(f"Skipping malformed line: {item}")

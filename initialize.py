@@ -116,9 +116,15 @@ def initialize_retriever():
         st.stop()
 
     # OSがWindowsの場合、Unicode正規化と、cp932（Windows用の文字コード）で表現できない文字を除去
+    # また、BOM（\ufeff）も除去
     for doc in docs:
+        # BOMを除去
+        if doc.page_content.startswith('\ufeff'):
+            doc.page_content = doc.page_content[1:]
         doc.page_content = adjust_string(doc.page_content)
         for key in doc.metadata:
+            if isinstance(doc.metadata[key], str) and doc.metadata[key].startswith('\ufeff'):
+                doc.metadata[key] = doc.metadata[key][1:]
             doc.metadata[key] = adjust_string(doc.metadata[key])
 
     docs_all = []
