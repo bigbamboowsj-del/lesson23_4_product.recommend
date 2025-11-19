@@ -119,9 +119,9 @@ def display_product(result):
     # 在庫状況の表示
     stock_status = product.get('stock_status', 'あり')
     if stock_status == ct.STOCK_LOW_STATUS:
-        st.warning(f"{ct.STOCK_ERROR_ICON} {ct.STOCK_LOW_MESSAGE}")
+        st.warning(f"{ct.STOCK_LOW_MESSAGE} icon={ct.STOCK_ERROR_ICON}")
     elif stock_status == ct.STOCK_OUT_STATUS:
-        st.error(f"{ct.ERROR_ICON} {ct.STOCK_OUT_MESSAGE}")
+        st.error(f"{ct.STOCK_OUT_MESSAGE} icon={ct.ERROR_ICON}")
 
     # 「商品カテゴリ」と「メーカー」と「ユーザー評価」
     st.code(f"""
