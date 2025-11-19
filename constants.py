@@ -12,10 +12,9 @@
 APP_NAME = "対話型商品レコメンド生成AIアプリ"
 USER_ICON_FILE_PATH = "./images/user_icon.jpg"
 AI_ICON_FILE_PATH = "./images/ai_icon.jpg"
-ERROR_ICON = ":material/error:"
+ERROR_ICON = ":material/warning:"
 CHAT_INPUT_HELPER_TEXT = "こちらからお探しの商品の特徴や名前を入力してください。"
 SPINNER_TEXT = "レコメンドする商品の検討中..."
-
 
 # ==========================================
 # ログ出力系
